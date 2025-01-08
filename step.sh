@@ -21,7 +21,6 @@ echo "MAESTRO INSTALLED - Check Version"
 maestro -v
 
 # Run Maestro Cloud
-xcrun simctl install booted $app_file
 adb shell screenrecord /sdcard/ui_tests.mp4 &
 screenrecord_pid=$!
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
