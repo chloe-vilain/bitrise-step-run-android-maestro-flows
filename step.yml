@@ -12,7 +12,7 @@ title: |-
 summary: |
   Runs Android Maestro Flow on an Android emulator
 description: |
-  This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step doe snot give any output but puts tests results in deploy folder if requested.
+  This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step does not give any output but puts tests results in deploy folder if requested.
 website: https://github.com/chloe-vilain/bitrise-step-run-android-maestro-flows
 source_code_url: https://github.com/chloe-vilain/bitrise-step-run-android-maestro-flows
 support_url: https://github.com/chloe-vilain/bitrise-step-run-android-maestro-flows/issues
@@ -26,10 +26,10 @@ support_url: https://github.com/chloe-vilain/bitrise-step-run-android-maestro-fl
 # You can find more information about project type tags in the Step Development Guideline:
 # https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md
 #
-# project_type_tags:
+project_type_tags:
+  - android
 #   - ios
 #   - macos
-#   - android
 #   - xamarin
 #   - react-native
 #   - cordova
@@ -46,9 +46,9 @@ type_tags:
 # You can find more information about this in the documentation here:
 # https://devcenter.bitrise.io/en/steps-and-workflows/developing-your-own-bitrise-step/developing-a-new-step.html#setting-conditions-for-running-the-step
 #
-# is_always_run: false
-# is_skippable: false
-# run_if: ""
+is_always_run: false
+is_skippable: false
+run_if: ""
 
 # Use the `deps` property to declare dependencies that you can fetch from an OS dependency manager.
 # You can find more information about this in the documentation here:
@@ -67,24 +67,43 @@ toolkit:
 
 
 inputs:
-  - example_step_input: Default Value - you can leave this empty if you want to
+  - app_file: ""
     opts:
-      title: "Example Step Input"
-      summary: Summary. No more than 2-3 sentences.
+      title: "APK File"
+      summary: "Main Android APK file to run your flows against"
       description: |
-        Description of this input.
-
-        Can be Markdown formatted text.
+        **iOS**: `app_file` should point to an emulator build packaged as an **.app**. 
+          **Hint:** Output Varaible `$BITRISE_APK_PATH` from **Android Build for UI Testing** step can be used. 
       is_expand: true
       is_required: true
-      value_options: []
-
-outputs:
-  - EXAMPLE_STEP_OUTPUT:
+  - workspace: ".maestro"
     opts:
-      title: "Example Step Output"
-      summary: Summary. No more than 2-3 sentences.
+      title: "Flow workspace"
+      summary: Flow file or directory
       description: |
-        Description of this output.
-
-        Can be Markdown formatted text.
+        A single maestro flow file or directroy that includes Maestro Flows.
+      is_expand: true
+      is_required: true
+  - additional_params: ""
+    opts:
+      title: "Additional Maestro Parameters"
+      summary: "Additional parameters of Maestro CLI command i.e --include-tags=dev,pull-request"
+      description: ""
+      is_expand: true
+      is_required: false
+  - export_test_report: "true"
+    opts:
+      title: "Export test report (JUnit) and Video(mp4) to Deploy Directory"
+      summary: "Generate test suite report (JUnit) and video(mp4)"
+      description: "Exports Test Report to Bitrise Test Result Page and Deploy Dir. Report and video will be available for download as artifacts."
+      value_options:
+        - "true"
+        - "false"
+      is_required: false
+  - maestro_cli_version: ""
+    opts:
+      title: "Maestro CLI version"
+      summary: "Maestro CLI version to be downloaded in your CI (Default: latest)"
+      description: ""
+      is_expand: true
+      is_required: false
