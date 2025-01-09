@@ -4,6 +4,7 @@ set -ex
 
 # Change to source directory
 cd $BITRISE_SOURCE_DIR
+recording_done_flag="/tmp/recording_done"
 
 # Maestro version
 if [[ -z "$maestro_cli_version" ]]; then
