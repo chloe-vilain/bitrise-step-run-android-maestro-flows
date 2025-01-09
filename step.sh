@@ -30,7 +30,7 @@ adb_pid=$!
 # Run tests
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
 # Kill screenrecord & surpress errors
-adb shell killall screenrecord || true
+adb shell killall -INT screenrecord || true
 # Wait for screenrecord to finish
 # wait $adb_pid
 adb pull /sdcard/ui_tests.mp4 $BITRISE_DEPLOY_DIR/ui_tests.mp4
