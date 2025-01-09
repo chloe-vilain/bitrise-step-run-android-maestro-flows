@@ -23,9 +23,10 @@ maestro -v
 # Run Maestro Cloud
 adb install -r $app_file
 adb shell screenrecord /sdcard/ui_tests.mp4 &
-screenrecord_pid=$!
+adb_pid=$!
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
-kill -SIGINT $screenrecord_pid || true
+adb shell killall screenrecord
+wait $adb_pid
 adb pull /sdcard/ui_tests.mp4 $BITRISE_DEPLOY_DIR/ui_tests.mp4
 adb shell rm /sdcard/ui_tests.mp4
 
