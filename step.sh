@@ -22,10 +22,16 @@ maestro -v
 
 # Run Maestro Cloud
 adb install -r $app_file
+# Kill any existing screenrecord process
+adb shell killall screenrecord || echo "No screenrecord process to kill"
+# Start recording
 adb shell screenrecord /sdcard/ui_tests.mp4 &
 adb_pid=$!
+# Run tests
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
-adb shell killall screenrecord
+# Kill screenrecord & surpress errors
+adb shell killall screenrecord || true
+# Wait for screenrecord to finish
 wait $adb_pid
 adb pull /sdcard/ui_tests.mp4 $BITRISE_DEPLOY_DIR/ui_tests.mp4
 adb shell rm /sdcard/ui_tests.mp4
