@@ -28,7 +28,7 @@ adb install -r $app_file
 record_screen() {
     local n=0
     while [[ ! -f "$recording_done_flag" ]]; do
-        adb shell screenrecord --time-limit 15 "/sdcard/ui_tests_${n}.mp4"
+        adb shell screenrecord --time-limit 15 "/sdcard/ui_tests_${n}.mp4" || true
         ((n++))
     done
 }
@@ -53,7 +53,7 @@ rm -f "$recording_done_flag"
 n=0
 recordings=()
 while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
-    adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4"
+    adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" 
     adb shell rm "/sdcard/ui_tests_${n}.mp4"
     recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
     ((n++))
