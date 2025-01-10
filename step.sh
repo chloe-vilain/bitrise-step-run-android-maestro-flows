@@ -28,42 +28,44 @@ adb install -r $app_file
 record_screen() {
     local n=0
     while [[ ! -f "$RECORDING_DONE_FLAG" ]]; do
-        echo "About to start the ${n}th recording"
+        echo 
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to start the ${n}th recording"
         adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
-        echo "Recording ${n} finished"
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} finished"
         ((n++))
     done
 }
 
 # Run the recording loop in the background
-echo "About to run the recording loop"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to run the recording loop"
 record_screen &
 recording_pid=$!
 # sleep for 5 seconds to make sure the recording loop is started
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N")Recording loop started"
 sleep 5
-echo "Recording loop started"
+
 
 # run tests
-echo "About to run tests"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to run tests"
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
-echo "Tests finished"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Tests finished"
 
 # Signal the recording loop to stop
-echo "About to signal the recording loop to stop"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to signal the recording loop to stop"
 touch "$RECORDING_DONE_FLAG"
-echo "Signal sent"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Signal sent"
 
 # Wait for the recording loop to exit
-echo "Checking if the recording loop is still running"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Checking if the recording loop is still running"
 if ps -p $recording_pid > /dev/null; then
-    echo "Waiting for the recording loop to exit"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Waiting for the recording loop to exit"
     wait $recording_pid
-    echo "Recording loop exited"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop exited"
 else
-    echo "Recording loop already exited"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop already exited"
 fi
 
-echo "Recording files:" && adb shell ls /sdcard/
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording files:" && adb shell ls /sdcard/
 
 # Remove the recording flag
 rm -f "$RECORDING_DONE_FLAG"
@@ -73,47 +75,47 @@ n=0
 recordings=()
 echo "Collecting recordings"
 while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
-    echo "Pulling recording ${n}"   
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Pulling recording ${n}"   
     adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" 
-    echo "Removing recording ${n}"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Removing recording ${n}"
     adb shell rm "/sdcard/ui_tests_${n}.mp4"
-    echo "Recording ${n} pulled"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} pulled"
     recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
     ((n++))
 done
 
-echo "Exited the recording loop"
-echo "Recordings collected: ${recordings[@]}"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exited the recording loop"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recordings collected: ${recordings[@]}"
 
 # Kill adb server
 adb kill-server
-echo "ADB server killed"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") ADB server killed"
 
 # Export test results
 # Test report file
 # Export test results
-echo "About to export test results"
-echo "Exporting test results"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to export test results"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exporting test results"
 if [[ "$export_test_report" == "true" ]]; then
-    echo "Creating test run directory"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Creating test run directory"
     test_run_dir="$BITRISE_TEST_RESULT_DIR/maestro"
     mkdir -p "$test_run_dir"
 
-    echo "Copying test report xml"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying test report xml"
     cp "$BITRISE_DEPLOY_DIR/test_report.xml" "$test_run_dir/maestro_report.xml"
 
     # Export recordings
     echo "Exporting recordings"
     for recording in "${recordings[@]}"; do
-        echo "Copying recording ${recording}"
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying recording ${recording}"
         cp "$recording" "$test_run_dir/"
-        echo "Recording ${recording} copied"
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${recording} copied"
     done
-    echo "Recordings copied"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recordings copied"
     # Add metadata fileq
     echo '{"maestro-test-report":"Maestro Android Flows"}' >> "$test_run_dir/test-info.json"
 else
-    echo "Test report export is disabled."
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Test report export is disabled."
 fi
 
-echo "All tasks completed."
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") All tasks completed."
