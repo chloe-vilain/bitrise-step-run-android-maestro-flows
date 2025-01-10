@@ -25,14 +25,22 @@ maestro -v
 adb install -r $app_file
 
 # Start screen recording in a loop
+recordings=()
 record_screen() {
     local n=0
     while [[ ! -f "$RECORDING_DONE_FLAG" ]]; do
         echo "About to start the ${n}th recording"
         adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
         echo "Recording ${n} finished"
+        echo "Pulling recording ${n}"   
+        adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4"
+        echo "Recording ${n} pulled"
+        recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
         ((n++))
+        echo "End of loop iteration ${n}"
     done
+    echo "Recordings collected: ${recordings[@]}"
+    echo "End of record_screen function"
 }
 
 # Run the recording loop in the background
@@ -61,18 +69,18 @@ echo "Recording files:" && adb shell ls "/sdcard/ui_tests_*.mp4"
 rm -f "$RECORDING_DONE_FLAG"
 
 # Collect recordings from the emulator
-n=0
-recordings=()
-echo "Collecting recordings"
-while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
-    echo "Pulling recording ${n}"   
-    adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" 
-    echo "Removing recording ${n}"
-    adb shell rm "/sdcard/ui_tests_${n}.mp4"
-    echo "Recording ${n} pulled"
-    recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
-    ((n++))
-done
+# n=0
+# recordings=()
+# echo "Collecting recordings"
+# while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
+#     echo "Pulling recording ${n}"   
+#     adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" 
+#     echo "Removing recording ${n}"
+#     adb shell rm "/sdcard/ui_tests_${n}.mp4"
+#     echo "Recording ${n} pulled"
+#     recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
+#     ((n++))
+# done
 
 # Kill adb server
 adb kill-server
