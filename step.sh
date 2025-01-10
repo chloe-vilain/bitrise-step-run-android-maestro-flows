@@ -108,6 +108,34 @@ echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recordings collected: ${recordings[@]}"
 adb kill-server
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") ADB server killed"
 
+# Merge recordings with ffmpeg
+merged_video="$BITRISE_DEPLOY_DIR/merged_ui_tests.mp4"
+file_list="/tmp/file_list.txt"
+rm -f "$file_list"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Generating file list for ffmpeg"
+for recording in "${recordings[@]}"; do
+    echo "file '$recording'" >> "$file_list"
+done
+
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") File list generated: $(cat $file_list)"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Running ffmpeg to concatenate videos"
+
+if ffmpeg -f concat -safe 0 -i "$file_list" -c copy "$merged_video"; then
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Videos concatenated successfully into $merged_video"
+else
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Error: Failed to concatenate videos"
+    exit 1
+fi
+
+# Verify and copy the merged video
+if [[ -f "$merged_video" ]]; then
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video file: $merged_video"
+    # Optionally copy the merged video to a specific location
+    # cp "$merged_video" "/path/to/desired/location/" && echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video copied"
+else
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Error: Merged video not found"
+fi
+
 # Export test results
 # Test report file
 # Export test results
@@ -122,7 +150,11 @@ if [[ "$export_test_report" == "true" ]]; then
     cp "$BITRISE_DEPLOY_DIR/test_report.xml" "$test_run_dir/maestro_report.xml"
 
     # Export recordings
-    echo "Exporting recordings"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exporting recordings"
+    if [[ -f "$merged_video" ]]; then
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying merged video"
+        cp "$merged_video" "$test_run_dir/"
+    fi
     for recording in "${recordings[@]}"; do
         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying recording ${recording}"
         cp "$recording" "$test_run_dir/"
