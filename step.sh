@@ -55,6 +55,7 @@ echo "Signal sent"
 echo "Waiting for the recording loop to exit"
 wait $recording_pid
 echo "Recording loop exited"
+echo "Recording files:" && adb shell ls "/sdcard/ui_tests_*.mp4"
 
 # Remove the recording flag
 rm -f "$RECORDING_DONE_FLAG"
@@ -62,9 +63,13 @@ rm -f "$RECORDING_DONE_FLAG"
 # Collect recordings from the emulator
 n=0
 recordings=()
+echo "Collecting recordings"
 while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
+    echo "Pulling recording ${n}"   
     adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" 
+    echo "Removing recording ${n}"
     adb shell rm "/sdcard/ui_tests_${n}.mp4"
+    echo "Recording ${n} pulled"
     recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
     ((n++))
 done
@@ -75,17 +80,21 @@ adb kill-server
 # Export test results
 # Test report file
 # Export test results
+echo "Exporting test results"
 if [[ "$export_test_report" == "true" ]]; then
     test_run_dir="$BITRISE_TEST_RESULT_DIR/maestro"
     mkdir -p "$test_run_dir"
     cp "$BITRISE_DEPLOY_DIR/test_report.xml" "$test_run_dir/maestro_report.xml"
 
     # Export recordings
+    echo "Exporting recordings"
     for recording in "${recordings[@]}"; do
+        echo "Copying recording ${recording}"
         cp "$recording" "$test_run_dir/"
+        echo "Recording ${recording} copied"
     done
-
-    # Add metadata file
+    echo "Recordings copied"
+    # Add metadata fileq
     echo '{"maestro-test-report":"Maestro Android Flows"}' >> "$test_run_dir/test-info.json"
 else
     echo "Test report export is disabled."
