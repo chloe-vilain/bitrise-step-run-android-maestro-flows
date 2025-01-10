@@ -82,16 +82,24 @@ while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
     ((n++))
 done
 
+echo "Exited the recording loop"
+echo "Recordings collected: ${recordings[@]}"
+
 # Kill adb server
 adb kill-server
+echo "ADB server killed"
 
 # Export test results
 # Test report file
 # Export test results
+echo "About to export test results"
 echo "Exporting test results"
 if [[ "$export_test_report" == "true" ]]; then
+    echo "Creating test run directory"
     test_run_dir="$BITRISE_TEST_RESULT_DIR/maestro"
     mkdir -p "$test_run_dir"
+
+    echo "Copying test report xml"
     cp "$BITRISE_DEPLOY_DIR/test_report.xml" "$test_run_dir/maestro_report.xml"
 
     # Export recordings
