@@ -2,6 +2,9 @@
 
 set -ex
 
+# Restart ADB server to ensure no conflicts 
+adb kill-server && adb start-server
+
 # Change to source directory
 cd $BITRISE_SOURCE_DIR
 RECORDING_DONE_FLAG="/tmp/recording_done"
@@ -28,12 +31,12 @@ adb install -r $app_file
 record_screen() {
     local n=0
     while [[ ! -f "$RECORDING_DONE_FLAG" ]]; do
-        echo 
         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to start the ${n}th recording"
         adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} finished"
         ((n++))
     done
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop exited"
 }
 
 # Run the recording loop in the background
@@ -70,16 +73,26 @@ echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording files:" && adb shell ls /sdcard
 # Remove the recording flag
 rm -f "$RECORDING_DONE_FLAG"
 
+# Sleep for 5 seconds to make sure the recording loop is exited
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Sleeping for 5 seconds to make sure the recording loop is exited"
+sleep 5
+
 # Collect recordings from the emulator
 n=0
 recordings=()
-echo "Collecting recordings"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Collecting recordings"
 while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Pulling recording ${n}"   
-    adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" 
+    adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" && echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} pulled" || {
+        echo "Error: Failed to pull /sdcard/ui_tests_${n}.mp4"
+        break
+    }
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Removing recording ${n}"
-    adb shell rm "/sdcard/ui_tests_${n}.mp4"
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} pulled"
+    adb shell rm "/sdcard/ui_tests_${n}.mp4" && echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} removed" || {
+        echo "Error: Failed to remove /sdcard/ui_tests_${n}.mp4"
+        break
+    }
+    
     recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
     ((n++))
 done
