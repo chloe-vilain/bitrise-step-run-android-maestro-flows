@@ -52,9 +52,15 @@ touch "$RECORDING_DONE_FLAG"
 echo "Signal sent"
 
 # Wait for the recording loop to exit
-echo "Waiting for the recording loop to exit"
-wait $recording_pid
-echo "Recording loop exited"
+echo "Checking if the recording loop is still running"
+if ps -p $recording_pid > /dev/null; then
+    echo "Waiting for the recording loop to exit"
+    wait $recording_pid
+    echo "Recording loop exited"
+else
+    echo "Recording loop already exited"
+fi
+
 echo "Recording files:" && adb shell ls "/sdcard/ui_tests_*.mp4"
 
 # Remove the recording flag
