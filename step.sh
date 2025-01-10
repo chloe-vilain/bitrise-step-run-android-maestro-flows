@@ -30,11 +30,15 @@ adb install -r $app_file
 # Start screen recording in a loop
 record_screen() {
     local n=0
-    while [[ ! -f "$RECORDING_DONE_FLAG" ]]; do
+    while true; do
+        if [ -f "$RECORDING_DONE_FLAG" ]; then
+            echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Flag detected, exiting loop"
+            break
+        fi
         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to start the ${n}th recording"
         adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} finished"
-        ((n++))
+        n=$((n + 1))
     done
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop exited"
 }
@@ -94,7 +98,7 @@ while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
     }
     
     recordings+=("$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4")
-    ((n++))
+    n=$((n + 1))
 done
 
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exited the recording loop"
