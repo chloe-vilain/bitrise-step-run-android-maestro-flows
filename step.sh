@@ -39,6 +39,8 @@ record_screen() {
 echo "About to run the recording loop"
 record_screen &
 recording_pid=$!
+# sleep for 5 seconds to make sure the recording loop is started
+sleep 5
 echo "Recording loop started"
 
 # run tests
