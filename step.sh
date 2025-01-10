@@ -28,23 +28,33 @@ adb install -r $app_file
 record_screen() {
     local n=0
     while [[ ! -f "$RECORDING_DONE_FLAG" ]]; do
+        echo "About to start the ${n}th recording"
         adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
+        echo "Recording ${n} finished"
         ((n++))
     done
 }
 
 # Run the recording loop in the background
+echo "About to run the recording loop"
 record_screen &
 recording_pid=$!
+echo "Recording loop started"
 
 # run tests
+echo "About to run tests"
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
+echo "Tests finished"
 
 # Signal the recording loop to stop
+echo "About to signal the recording loop to stop"
 touch "$RECORDING_DONE_FLAG"
+echo "Signal sent"
 
 # Wait for the recording loop to exit
+echo "Waiting for the recording loop to exit"
 wait $recording_pid
+echo "Recording loop exited"
 
 # Remove the recording flag
 rm -f "$RECORDING_DONE_FLAG"
