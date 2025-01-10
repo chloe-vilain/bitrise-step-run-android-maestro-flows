@@ -4,7 +4,7 @@ set -ex
 
 # Change to source directory
 cd $BITRISE_SOURCE_DIR
-recording_done_flag="/tmp/recording_done"
+RECORDING_DONE_FLAG="/tmp/recording_done"
 
 # Maestro version
 if [[ -z "$maestro_cli_version" ]]; then
@@ -27,8 +27,8 @@ adb install -r $app_file
 # Start screen recording in a loop
 record_screen() {
     local n=0
-    while [[ ! -f "$recording_done_flag" ]]; do
-        adb shell screenrecord --time-limit 15 "/sdcard/ui_tests_${n}.mp4" || true
+    while [[ ! -f "$RECORDING_DONE_FLAG" ]]; do
+        adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
         ((n++))
     done
 }
@@ -41,13 +41,13 @@ recording_pid=$!
 maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
 
 # Signal the recording loop to stop
-touch "$recording_done_flag"
+touch "$RECORDING_DONE_FLAG"
 
 # Wait for the recording loop to exit
 wait $recording_pid
 
 # Remove the recording flag
-rm -f "$recording_done_flag"
+rm -f "$RECORDING_DONE_FLAG"
 
 # Collect recordings from the emulator
 n=0
@@ -59,7 +59,8 @@ while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
     ((n++))
 done
 
-
+# Kill adb server
+adb kill-server
 
 # Export test results
 # Test report file
