@@ -61,7 +61,7 @@ else
     echo "Recording loop already exited"
 fi
 
-echo "Recording files:" && adb shell ls "/sdcard/ui_tests_*.mp4"
+echo "Recording files:" && adb shell ls /sdcard/
 
 # Remove the recording flag
 rm -f "$RECORDING_DONE_FLAG"
