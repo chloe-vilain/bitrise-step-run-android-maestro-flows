@@ -90,15 +90,6 @@ inputs:
       description: ""
       is_expand: true
       is_required: false
-  - export_test_report: "true"
-    opts:
-      title: "Export test report (JUnit) and Video(mp4) to Deploy Directory"
-      summary: "Generate test suite report (JUnit) and video(mp4)"
-      description: "Exports Test Report to Bitrise Test Result Page and Deploy Dir. Report and video will be available for download as artifacts."
-      value_options:
-        - "true"
-        - "false"
-      is_required: false
   - export_test_result_format: "junit"
     opts:
       title: "Export test result format"
