@@ -2,8 +2,16 @@
 
 This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step does not give any output but puts tests results in deploy folder if requested.
 
-# Requirements:
-In order to run this step, you will need to have a booted simulator and an app build file to install on it. These can be provided by the AVD Manager, Android Build for UI Testing, and Wait for Android Emulator steps.
+## Requirements:
+In order to run this step, you will need to have a booted emulator and an app build file to install on it. These can be provided by the AVD Manager & Android Build for UI Testing steps.
+
+We suggest running the steps in the following order, to allow emulator time to boot up fully:
+
+- avd-manager
+- android-build-for-ui-testing
+- wait-for-android-emulator
+- run-android-maestro-flows
+
 
 Inputs:
 - `app_file`: The path to the app build file to install on the emulator. Android Build for UI Testing outputs your app build path to `$BITRISE_APK_PATH`. You can pass this path to the `app_file` input of this step.
@@ -15,6 +23,7 @@ Inputs:
 ### Tips for running this step locally.
 - This step requires `ffmpeg` to be installed on your machine. The step will try to install it on Mac and Linux machines with brew and apt-get respectively if it is not found.
 - Note that, if you are running this step locally on M-series Mac, your AVD Manager step will need to leverage different processor architecture. You can achieve this by changing the abi to `arm64-v8a` in the AVD Manager step. You may also want to configure your local emulator to run in non-headless mode, for debugging.  
+- You may wish to add a step to your workflow to kill any local devices when debugging locally, to avoid bugs pertaining to multiple emulators running at once.
 
 Here's an example of setting up your build file to be compatible with M-series Mac for local testing & run the emulator in non-headless mode, while leveeraging the default x86 architecture in bitrise remote environment:
 
@@ -31,7 +40,7 @@ Here's an example of setting up your build file to be compatible with M-series M
    - api_level: 30
 ```
 
-- You may wish to add a step to kill any local devices when debugging locally, to avoid bugs pertaining to multiple emulators running at once. Here's an example of how to add a step to kill any local devices and to clean up your emulator avd files to ensure a clean slate between tests:
+ Here's an example of how to add a step to kill any local devices and to clean up your emulator avd files to ensure a clean slate between tests:
 
 ```
 - script@1:
@@ -54,6 +63,7 @@ Here's an example of setting up your build file to be compatible with M-series M
             echo "Creating new emulator avd file"
             avdmanager create avd -n emulator -k "system-images;android-30;google_apis;arm64-v8a" -d "pixel"
 ```
+Sometimes, you may have trouble with the local emulator failing to boot up in a timely manner. Usually, force-killing the process and re-running the workflow will fix this issue.
 
 ## How to use this Step
 

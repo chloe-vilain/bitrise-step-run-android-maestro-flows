@@ -54,12 +54,11 @@ run_if: ""
 # You can find more information about this in the documentation here:
 # https://devcenter.bitrise.io/en/steps-and-workflows/developing-your-own-bitrise-step/developing-a-new-step.html#submodules-and-step-dependencies
 #
-# deps:
-#   brew:
-#   - name: cmake
-#   apt_get:
-#   - name: cmake
-
+deps:
+  brew:
+    - name: ffmpeg
+  apt_get:
+    - name: ffmpeg
 
 toolkit:
   bash:
@@ -99,6 +98,17 @@ inputs:
       value_options:
         - "true"
         - "false"
+      is_required: false
+  - export_test_result_format: "junit"
+    opts:
+      title: "Export test result format"
+      summary: "Export test result format (Default: junit)"
+      description: "Format for the test report. Options: junit (default), html, noop"
+      value_options:
+        - "junit"
+        - "html"
+        - "noop"
+      is_expand: true
       is_required: false
   - maestro_cli_version: ""
     opts:

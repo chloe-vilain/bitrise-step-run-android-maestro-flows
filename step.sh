@@ -31,45 +31,45 @@ maestro -v
 
 
 # Function to ensure ffmpeg is installed
-ensure_ffmpeg_installed() {
-    if command_exists ffmpeg; then
-        echo "ffmpeg is already installed."
-        return 0
-    fi
+# ensure_ffmpeg_installed() {
+#     if command_exists ffmpeg; then
+#         echo "ffmpeg is already installed."
+#         return 0
+#     fi
 
-    # Detect the operating system
-    OS="$(uname -s)"
-    case "$OS" in
-        Linux*)
-            echo "ffmpeg is not installed. Installing with apt-get..."
-            if command_exists apt-get; then
-                sudo apt-get update
-                sudo apt-get install -y ffmpeg && echo "ffmpeg has been installed."
-                return 0
-            else
-                echo "apt-get is not available on this system. Cannot install ffmpeg."
-                exit 1
-            fi
-            ;;
-        Darwin*)
-            echo "ffmpeg is not installed. Installing with Homebrew..."
-            if command_exists brew; then
-                brew install ffmpeg && echo "ffmpeg has been installed."
-                return 0
-            else
-                echo "Homebrew is not installed. Please install Homebrew first and then rerun this script."
-                exit 1
-            fi
-            ;;
-        *)
-            echo "Error: ffmpeg is not installed. Please visit https://ffmpeg.org/download.html to download and install ffmpeg for Windows."
-            exit 1
-            ;;
-    esac
-}
+#     # Detect the operating system
+#     OS="$(uname -s)"
+#     case "$OS" in
+#         Linux*)
+#             echo "ffmpeg is not installed. Installing with apt-get..."
+#             if command_exists apt-get; then
+#                 sudo apt-get update
+#                 sudo apt-get install -y ffmpeg && echo "ffmpeg has been installed."
+#                 return 0
+#             else
+#                 echo "apt-get is not available on this system. Cannot install ffmpeg."
+#                 exit 1
+#             fi
+#             ;;
+#         Darwin*)
+#             echo "ffmpeg is not installed. Installing with Homebrew..."
+#             if command_exists brew; then
+#                 brew install ffmpeg && echo "ffmpeg has been installed."
+#                 return 0
+#             else
+#                 echo "Homebrew is not installed. Please install Homebrew first and then rerun this script."
+#                 exit 1
+#             fi
+#             ;;
+#         *)
+#             echo "Error: ffmpeg is not installed. Please visit https://ffmpeg.org/download.html to download and install ffmpeg for Windows."
+#             exit 1
+#             ;;
+#     esac
+# }
 
-# Call the function in your script where needed
-ensure_ffmpeg_installed
+# # Call the function in your script where needed
+# ensure_ffmpeg_installed
 
 # install the app
 adb install -r $app_file
@@ -101,7 +101,7 @@ sleep 5
 
 # run tests
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to run tests"
-maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params
+maestro test $workspace/ --format $export_test_result_format --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Tests finished"
 
 # Signal the recording loop to stop
