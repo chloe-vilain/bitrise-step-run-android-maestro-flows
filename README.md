@@ -1,6 +1,6 @@
 # Run Android Maestro Flows
 
-This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step does not give any output but puts tests results in deploy folder if requested.
+This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step will fail if the maestro tests fail.
 
 ## Requirements:
 In order to run this step, you will need to have a booted emulator and an app build file to install on it. These can be provided by the AVD Manager & Android Build for UI Testing steps.
