@@ -45,7 +45,8 @@ echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop started"
 # run tests
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to run tests"
 maestro test $workspace/ --format $export_test_result_format --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Tests finished"
+test_exit_status=$?
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Test execution finished with exit status $test_exit_status"
 
 # Signal the recording loop to stop and wait for it to exit
 touch "$RECORDING_DONE_FLAG"
@@ -105,4 +106,4 @@ else
 fi
 
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") All tasks completed."
-
+exit $test_exit_status
