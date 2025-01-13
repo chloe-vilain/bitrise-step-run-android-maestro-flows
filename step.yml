@@ -72,7 +72,7 @@ inputs:
       title: "APK File"
       summary: "Main Android APK file to run your flows against"
       description: |
-        **iOS**: `app_file` should point to an emulator build packaged as an **.app**. 
+          `app_file` should point to an emulator build.
           **Hint:** Output Varaible `$BITRISE_APK_PATH` from **Android Build for UI Testing** step can be used. 
       is_expand: true
       is_required: true

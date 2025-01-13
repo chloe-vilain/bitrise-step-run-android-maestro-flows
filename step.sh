@@ -101,7 +101,7 @@ sleep 5
 
 # run tests
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to run tests"
-maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params || true
+maestro test $workspace/ --format junit --output $BITRISE_DEPLOY_DIR/test_report.xml $additional_params
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Tests finished"
 
 # Signal the recording loop to stop

@@ -1,7 +1,59 @@
 # Run Android Maestro Flows
 
-This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step doe snot give any output but puts tests results in deploy folder if requested.
+This step runs your Maestro flows on an Android emulator and exports a test report and a video recording. This step does not give any output but puts tests results in deploy folder if requested.
 
+# Requirements:
+In order to run this step, you will need to have a booted simulator and an app build file to install on it. These can be provided by the AVD Manager, Android Build for UI Testing, and Wait for Android Emulator steps.
+
+Inputs:
+- `app_file`: The path to the app build file to install on the emulator. Android Build for UI Testing outputs your app build path to `$BITRISE_APK_PATH`. You can pass this path to the `app_file` input of this step.
+- `workspace`: The path to the Maestro flow file or directory that includes Maestro Flows. Default is `.maestro` directory in the root of your project.
+- `additional_params`: Additional parameters of Maestro CLI command i.e --include-tags=dev,pull-request
+- `export_test_report`: Whether to export a test report (JUnit) and video(mp4) to Deploy Directory. Default is `true`.
+- `maestro_cli_version`: The version of Maestro CLI to be downloaded in your CI. Default is `latest`.
+
+### Tips for running this step locally.
+- This step requires `ffmpeg` to be installed on your machine. The step will try to install it on Mac and Linux machines with brew and apt-get respectively if it is not found.
+- Note that, if you are running this step locally on M-series Mac, your AVD Manager step will need to leverage different processor architecture. You can achieve this by changing the abi to `arm64-v8a` in the AVD Manager step. You may also want to configure your local emulator to run in non-headless mode, for debugging.  
+
+Here's an example of setting up your build file to be compatible with M-series Mac for local testing & run the emulator in non-headless mode, while leveeraging the default x86 architecture in bitrise remote environment:
+
+```
+- avd-manager@2:
+   run_if: "{{not .IsCI}}"
+   inputs:
+   - abi: arm64-v8a
+   - api_level: 30
+   - headless_mode: 'no'
+- avd-manager@2:
+   run_if: ".IsCI"
+   inputs:
+   - api_level: 30
+```
+
+- You may wish to add a step to kill any local devices when debugging locally, to avoid bugs pertaining to multiple emulators running at once. Here's an example of how to add a step to kill any local devices and to clean up your emulator avd files to ensure a clean slate between tests:
+
+```
+- script@1:
+        title: Kill all open devices
+        summary: Kill any running emulators to make sure only the emulator we will
+          provision is running
+        description: This is necessary for running locally, where outstanding emulators
+          may be running & will interfere with some of the later commands in the test
+          runner, such as copying files from the emulator sd. Also cleans up any existing
+          emulator avd files to ensure clean build. Only to run locally.
+        run_if: "{{not .IsCI}}"
+        inputs:
+        - content: |
+            # Kill any running emulator devices
+            echo "Killing any running emulator devices"
+            adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
+            echo "Cleaning up emulator avd files"
+            rm ~/.android/avd/emulator.ini
+            rm -rf ~/.android/avd/emulator.avd/
+            echo "Creating new emulator avd file"
+            avdmanager create avd -n emulator -k "system-images;android-30;google_apis;arm64-v8a" -d "pixel"
+```
 
 ## How to use this Step
 
