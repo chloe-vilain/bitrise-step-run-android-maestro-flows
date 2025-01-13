@@ -20,12 +20,14 @@ Inputs:
 - `export_test_report`: Whether to export a test report (JUnit) and video(mp4) to Deploy Directory. Default is `true`.
 - `maestro_cli_version`: The version of Maestro CLI to be downloaded in your CI. Default is `latest`.
 
-### Tips for running this step locally.
-- This step requires `ffmpeg` to be installed on your machine. The step will try to install it on Mac and Linux machines with brew and apt-get respectively if it is not found.
-- Note that, if you are running this step locally on M-series Mac, your AVD Manager step will need to leverage different processor architecture. You can achieve this by changing the abi to `arm64-v8a` in the AVD Manager step. You may also want to configure your local emulator to run in non-headless mode, for debugging.  
-- You may wish to add a step to your workflow to kill any local devices when debugging locally, to avoid bugs pertaining to multiple emulators running at once.
+Dependencies:
+- `ffmpeg` - This step requires `ffmpeg` to be installed on your machine. The step will try to install it on Mac and Linux machines with brew and apt-get respectively if it is not found.
+- `maestro cli` - This step will install the Maestro CLI if it is not found. 
 
-Here's an example of setting up your build file to be compatible with M-series Mac for local testing & run the emulator in non-headless mode, while leveeraging the default x86 architecture in bitrise remote environment:
+
+### Tips for running this step locally & debugging
+
+Note that, if you are running this step locally on M-series Mac, your AVD Manager step will need to leverage different processor architecture. You can achieve this by changing the abi to `arm64-v8a` in the AVD Manager step. You may also want to configure your local emulator to run in non-headless mode, for debugging.  Here's an example of setting up your build file to be compatible with M-series Mac for local testing & run the emulator in non-headless mode, while leveeraging the default x86 architecture in bitrise remote environment:
 
 ```
 - avd-manager@2:
@@ -40,30 +42,9 @@ Here's an example of setting up your build file to be compatible with M-series M
    - api_level: 30
 ```
 
- Here's an example of how to add a step to kill any local devices and to clean up your emulator avd files to ensure a clean slate between tests:
+Due to timeout limitations with the adb screen recorder functionality (times out after 3 mintes), this step will run a loop in the background to record the screen in 15-second chunks. The recordings will be merged into a single video file using `ffmpeg` and exported to the deploy directory. If the ffmpeg merge fails (for example, if one of the recordings is corrupted), the individual recordings will be exported instead.
 
-```
-- script@1:
-        title: Kill all open devices
-        summary: Kill any running emulators to make sure only the emulator we will
-          provision is running
-        description: This is necessary for running locally, where outstanding emulators
-          may be running & will interfere with some of the later commands in the test
-          runner, such as copying files from the emulator sd. Also cleans up any existing
-          emulator avd files to ensure clean build. Only to run locally.
-        run_if: "{{not .IsCI}}"
-        inputs:
-        - content: |
-            # Kill any running emulator devices
-            echo "Killing any running emulator devices"
-            adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
-            echo "Cleaning up emulator avd files"
-            rm ~/.android/avd/emulator.ini
-            rm -rf ~/.android/avd/emulator.avd/
-            echo "Creating new emulator avd file"
-            avdmanager create avd -n emulator -k "system-images;android-30;google_apis;arm64-v8a" -d "pixel"
-```
-Sometimes, you may have trouble with the local emulator failing to boot up in a timely manner. Usually, force-killing the process and re-running the workflow will fix this issue.
+You may wish to add a step to your workflow to kill any local devices when debugging locally, to avoid bugs pertaining to multiple emulators running at once. 
 
 ## How to use this Step
 

@@ -16,17 +16,17 @@ RECORDING_DONE_FLAG="/tmp/recording_done"
 
 # Maestro version
 if [[ -z "$maestro_cli_version" ]]; then
-    echo "Maestro CLI version not specified, using latest"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Maestro CLI version not specified, using latest"
 else
-    echo "Maestro CLI version: $maestro_cli_version"
+    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Maestro CLI version: $maestro_cli_version"
     export MAESTRO_VERSION=$maestro_cli_version;
 fi
 
 # Install maestro CLI
-echo "Installing Maestro CLI"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Installing Maestro CLI"
 curl -Ls "https://get.maestro.mobile.dev" | bash
 export PATH="$PATH":"$HOME/.maestro/bin"
-echo "MAESTRO INSTALLED - Check Version"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") MAESTRO INSTALLED - Check Version"
 maestro -v
 
 
@@ -38,24 +38,19 @@ record_screen() {
     local n=0
     while true; do
         if [ -f "$RECORDING_DONE_FLAG" ]; then
-            echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Flag detected, exiting loop"
             break
         fi
-        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to start the ${n}th recording"
         adb shell screenrecord --time-limit 15 --verbose "/sdcard/ui_tests_${n}.mp4"
-        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} finished"
         n=$((n + 1))
     done
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop exited"
 }
 
 # Run the recording loop in the background
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to run the recording loop"
 record_screen &
 recording_pid=$!
 # sleep for 5 seconds to make sure the recording loop is started
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N")Recording loop started"
-sleep 5
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop started"
+# sleep 5
 
 
 # run tests
@@ -64,37 +59,32 @@ maestro test $workspace/ --format $export_test_result_format --output $BITRISE_D
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Tests finished"
 
 # Signal the recording loop to stop
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to signal the recording loop to stop"
 touch "$RECORDING_DONE_FLAG"
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Signal sent"
 
 # Wait for the recording loop to exit
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Checking if the recording loop is still running"
 if ps -p $recording_pid > /dev/null; then
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Waiting for the recording loop to exit"
     wait $recording_pid
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop exited"
 else
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording loop already exited"
 fi
 
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording files:" && adb shell ls /sdcard/
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N")Recording files:" && adb shell ls /sdcard/ui_tests_*.mp4
 
 # Remove the recording flag
 rm -f "$RECORDING_DONE_FLAG"
 
 # Sleep for 5 seconds to make sure the recording loop is exited
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Sleeping for 5 seconds to make sure the recording loop is exited"
-sleep 5
+# echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Sleeping for 5 seconds to make sure the recording loop is exited"
+# sleep 5
 
 # Collect recordings from the emulator
 n=0
 recordings=()
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Collecting recordings"
+echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Collecting recordings from emulator"
 while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Pulling recording ${n}"   
     adb pull "/sdcard/ui_tests_${n}.mp4" "$BITRISE_DEPLOY_DIR/ui_tests_${n}.mp4" && echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${n} pulled" || {
-        echo "Error: Failed to pull /sdcard/ui_tests_${n}.mp4"
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Error: Failed to pull /sdcard/ui_tests_${n}.mp4"
         break
     }
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Removing recording ${n}"
@@ -107,7 +97,6 @@ while adb shell ls "/sdcard/ui_tests_${n}.mp4" &>/dev/null; do
     n=$((n + 1))
 done
 
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exited the recording loop"
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recordings collected: ${recordings[@]}"
 
 # Kill adb server
@@ -118,34 +107,20 @@ echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") ADB server killed"
 merged_video="$BITRISE_DEPLOY_DIR/merged_ui_tests.mp4"
 file_list="/tmp/file_list.txt"
 rm -f "$file_list"
+
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Generating file list for ffmpeg"
 for recording in "${recordings[@]}"; do
     echo "file '$recording'" >> "$file_list"
 done
 
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") File list generated: $(cat $file_list)"
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Running ffmpeg to concatenate videos"
 
 if ffmpeg -f concat -safe 0 -i "$file_list" -c copy "$merged_video"; then
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Videos concatenated successfully into $merged_video"
 else
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Error: Failed to concatenate videos"
-    exit 1
 fi
 
-# Verify and copy the merged video
-if [[ -f "$merged_video" ]]; then
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video file: $merged_video"
-    # Optionally copy the merged video to a specific location
-    # cp "$merged_video" "/path/to/desired/location/" && echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video copied"
-else
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Error: Merged video not found"
-fi
-
-# Export test results
-# Test report file
-# Export test results
-echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") About to export test results"
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exporting test results"
 if [[ "$export_test_report" == "true" ]]; then
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Creating test run directory"
@@ -157,17 +132,17 @@ if [[ "$export_test_report" == "true" ]]; then
 
     # Export recordings
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exporting recordings"
+    # Copy merged video, if available
     if [[ -f "$merged_video" ]]; then
-        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying merged video"
         cp "$merged_video" "$test_run_dir/"
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video copied"
+    else
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video not found, copying individual recordings"
+        for recording in "${recordings[@]}"; do
+            cp "$recording" "$test_run_dir/"
+            echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${recording} copied"
+        done
     fi
-    for recording in "${recordings[@]}"; do
-        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying recording ${recording}"
-        cp "$recording" "$test_run_dir/"
-        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${recording} copied"
-    done
-    echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recordings copied"
-    # Add metadata fileq
     echo '{"maestro-test-report":"Maestro Android Flows"}' >> "$test_run_dir/test-info.json"
 else
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Test report export is disabled."
