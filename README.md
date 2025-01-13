@@ -17,7 +17,6 @@ Inputs:
 - `app_file`: The path to the app build file to install on the emulator. Android Build for UI Testing outputs your app build path to `$BITRISE_APK_PATH`. You can pass this path to the `app_file` input of this step.
 - `workspace`: The path to the Maestro flow file or directory that includes Maestro Flows. Default is `.maestro` directory in the root of your project.
 - `additional_params`: Additional parameters of Maestro CLI command i.e --include-tags=dev,pull-request
-- `export_test_report`: Whether to export a test report (JUnit) and video(mp4) to Deploy Directory. Default is `true`.
 - `maestro_cli_version`: The version of Maestro CLI to be downloaded in your CI. Default is `latest`.
 
 Dependencies:

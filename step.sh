@@ -95,34 +95,14 @@ done
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Running ffmpeg to concatenate videos"
 if ffmpeg -f concat -safe 0 -i "$file_list" -c copy "$merged_video"; then
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Videos concatenated successfully into $merged_video"
+    # Remove recording segments from the deploy directory
+    for recording in "${recordings[@]}"; do
+        echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Removing recording segment $recording"
+        rm -f "$recording"
+    done
 else
     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Error: Failed to concatenate videos"
 fi
 
 echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") All tasks completed."
-
-# Export test results & recordings, if requested
-# echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exporting test results"
-# if [[ "$export_test_report" == "true" ]]; then
-#     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Creating test run directory $BITRISE_TEST_RESULT_DIR/maestro"
-#     test_run_dir="$BITRISE_TEST_RESULT_DIR/maestro"
-#     mkdir -p "$test_run_dir"
-#     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Copying test report xml"
-#     cp "$BITRISE_DEPLOY_DIR/test_report.xml" "$test_run_dir/maestro_report.xml"
-#     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Exporting recordings"
-#     # Copy merged video, if available
-#     if [[ -f "$merged_video" ]]; then
-#         cp "$merged_video" "$test_run_dir/"
-#         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video copied"
-#     else
-#         echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Merged video not found, copying individual recordings"
-#         for recording in "${recordings[@]}"; do
-#             cp "$recording" "$test_run_dir/"
-#             echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Recording ${recording} copied"
-#         done
-#     fi
-#     echo '{"maestro-test-report":"Maestro Android Flows"}' >> "$test_run_dir/test-info.json"
-# else
-#     echo "$(date "+%Y-%m-%d %H:%M:%S.%3N") Test report export is disabled."
-# fi
 
